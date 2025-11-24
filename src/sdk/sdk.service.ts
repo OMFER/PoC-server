@@ -1,20 +1,23 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateSdkDto } from './dto/create-sdk.dto';
 import { UpdateSdkDto } from './dto/update-sdk.dto';
-import { AppVersionDocument, Sdk } from './entities/sdk.entity';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { AppVersionDocument, AppVersionSchema, Sdk } from './entities/sdk.entity';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
 
 @Injectable()
 export class SdkService {
-  constructor(
-    @InjectModel(Sdk.name)
-    private versionDB: Model<AppVersionDocument>//instancia a BD
-  ) {}
+  constructor(@InjectConnection() private readonly connection: Connection) {}
 
-  async create(createSdkDto: CreateSdkDto) {
+
+  private getModel(project: string): Model<any> {
+    return this.connection.model(project, AppVersionSchema, project);
+  }
+
+  async create(project: string,createSdkDto: CreateSdkDto) {
+    const Model = this.getModel(project);
     try{
-      const newVersion = new this.versionDB(createSdkDto);
+      const newVersion = new Model(createSdkDto);
       await newVersion.save();
       return newVersion;
       } catch (error) {
@@ -28,20 +31,22 @@ export class SdkService {
     }
   }
 
-  async findAll() {
-    const versions = await this.versionDB.find().exec();
+  async findAll(project: string) {
+    const versions = await this.getModel(project).find();
     return versions;
   }
 
-  async findVersion(id: string) {
-    const version = await this.versionDB.findById(id).exec();
+  async findVersion(project: string, id: string) {
+    const version = await this.getModel(project).findById(id);
     return version;
   }
 
-  async findBrand(id: string) {
-   const result = await this.versionDB.findOne(
-    { "files._id": id },
-    { "files.$": 1 } // Solo devuelve el file que coincide
+  async findBrand(project: string, id: string) {
+    const Model = this.getModel(project);
+
+    const result = await Model.findOne(
+      { "files._id": id },
+      { "files.$": 1 }
     );
 
     if (!result || !result.files || result.files.length === 0) {
@@ -51,33 +56,41 @@ export class SdkService {
     return result.files[0];
   }
 
-  async update(id: string, updateSdkDto: UpdateSdkDto) {
-  try {
-    const updated = await this.versionDB.findOneAndUpdate(
-      {_id: id},
-      updateSdkDto,
-      { new: true, runValidators: true }
-    );
-    if (!updated) {
-      throw new NotFoundException(`No existe un registro con id = '${id}'`);
-    }
+  async update(project: string, id: string, updateSdkDto: UpdateSdkDto) {
+    const Model = this.getModel(project);
 
-    return updated;
+    try {
+      const updated = await Model.findOneAndUpdate(
+        { _id: id },
+        updateSdkDto,
+        { new: true, runValidators: true }
+      );
+
+      if (!updated) {
+        throw new NotFoundException(`No existe un registro con id = '${id}'`);
+      }
+
+      return updated;
+
     } catch (error) {
       if (error.code === 11000) {
         const field = Object.keys(error.keyPattern)[0];
-        throw new BadRequestException(`El valor del campo '${field}' debe ser único.`);
+        throw new BadRequestException(
+          `El valor del campo '${field}' debe ser único.`
+        );
       }
       throw error;
     }
   }
 
-  async remove(id: string) {
+  async remove(project: string, id: string) {
+    const Model = this.getModel(project);
+
     try {
-      const result = await this.versionDB.deleteOne({ _id: id });
+      const result = await Model.deleteOne({ _id: id });
 
       if (result.deletedCount === 0) {
-        throw new NotFoundException(`No existe un registro con versionName = '${id}'`);
+        throw new NotFoundException(`No existe un registro con id = '${id}'`);
       }
       return {
         message: 'Registro eliminado correctamente',
@@ -90,20 +103,26 @@ export class SdkService {
     }
   }
 
-  async desactivate(id: string) {
+  async desactivate(project: string, id: string) {
+    const Model = this.getModel(project);
+
     try {
-      const result = await this.versionDB.findOneAndUpdate(
+      const result = await Model.findOneAndUpdate(
         { _id: id },
         { isActive: false },
         { new: true }
       );
+
       if (!result) {
         throw new NotFoundException(`No existe un registro con id = '${id}'`);
       }
+
       return result;
+
     } catch (error) {
       console.error('Error al desactivar:', error);
       throw new InternalServerErrorException('Error al desactivar el registro');
     }
   }
+
 }

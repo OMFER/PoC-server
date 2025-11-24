@@ -8,38 +8,57 @@ import { MongoidPipe } from 'src/validors/validator_id';
 export class SdkController {
   constructor(private readonly sdkService: SdkService) {}
 
-  @Post()
-  create(@Body() createSdkDto: CreateSdkDto) {
-    return this.sdkService.create(createSdkDto);
+  @Post(':project')
+  create(
+    @Param('project') project: string,
+    @Body() createSdkDto: CreateSdkDto
+  ) {
+    return this.sdkService.create(project, createSdkDto);
   }
 
-  @Get()
-  findAll() {
-    return this.sdkService.findAll();
+  @Get(':project')
+  findAll(@Param('project') project: string) {
+    return this.sdkService.findAll(project);
   }
 
-  @Get('version/:id')
-  findVersion(@Param('id', MongoidPipe) id: string) {
-    return this.sdkService.findVersion(id);
+  @Get(':project/version/:id')
+  findVersion(
+    @Param('project') project: string,
+    @Param('id', MongoidPipe) id: string
+  ) {
+    return this.sdkService.findVersion(project, id);
   }
 
-  @Get('brand/:id')
-  findBrand(@Param('id', MongoidPipe) id: string) {
-    return this.sdkService.findBrand(id);
+  @Get(':project/files/:id')
+  findBrand(
+    @Param('project') project: string,
+    @Param('id') id: string
+  ) {
+    return this.sdkService.findBrand(project, id);
   }
 
-  @Patch(':id')
-  update(@Param('id', MongoidPipe) id: string, @Body() updateSdkDto: UpdateSdkDto) {
-    return this.sdkService.update(id, updateSdkDto);
+  @Patch(':project/:id')
+  update(
+    @Param('project') project: string,
+    @Param('id', MongoidPipe) id: string,
+    @Body() updateSdkDto: UpdateSdkDto
+  ) {
+    return this.sdkService.update(project, id, updateSdkDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id', MongoidPipe) id: string) {
-    return this.sdkService.remove(id);
+  @Delete(':project/:id')
+  remove(
+    @Param('project') project: string,
+    @Param('id', MongoidPipe) id: string
+  ) {
+    return this.sdkService.remove(project, id);
   }
 
-  @Delete('desactivate/:id')
-  desactivate(@Param('id', MongoidPipe) id: string) {
-    return this.sdkService.desactivate(id);
+  @Delete(':project/desactivate/:id')
+  desactivate(
+    @Param('project') project: string,
+    @Param('id', MongoidPipe) id: string
+  ) {
+    return this.sdkService.desactivate(project, id);
   }
 }
