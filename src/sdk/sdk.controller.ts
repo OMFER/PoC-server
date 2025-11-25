@@ -4,7 +4,7 @@ import { CreateSdkDto } from './dto/create-sdk.dto';
 import { UpdateSdkDto } from './dto/update-sdk.dto';
 import { MongoidPipe } from 'src/validors/validator_id';
 
-@Controller('sdk')
+@Controller('pkg')
 export class SdkController {
   constructor(private readonly sdkService: SdkService) {}
 
