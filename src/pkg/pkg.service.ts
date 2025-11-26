@@ -1,14 +1,16 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateSdkDto } from './dto/create-pkg.dto';
 import { UpdateSdkDto } from './dto/update-pkg.dto';
-import { AppVersionDocument, AppVersionSchema, Sdk } from './entities/pkg.entity';
+import { AppVersionSchema } from './entities/pkg.entity';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
+import { GCloudService } from 'src/gcloud/gcloud.service';
 
 @Injectable()
-export class SdkService {
-  constructor(@InjectConnection() private readonly connection: Connection) {}
-
+export class PkgService {
+  constructor(@InjectConnection() private readonly connection: Connection,
+    private readonly gcloudService: GCloudService
+  ) {}
 
   private getModel(project: string): Model<any> {
     return this.connection.model(project, AppVersionSchema, project);
@@ -20,8 +22,7 @@ export class SdkService {
       const newVersion = new Model(createSdkDto);
       await newVersion.save();
       return newVersion;
-      } catch (error) {
-
+    } catch (error) {
       if (error.code === 11000) {
         const field = Object.keys(error.keyPattern)[0];
         throw new BadRequestException(`El valor del campo '${field}' debe ser único.`);
@@ -43,7 +44,6 @@ export class SdkService {
 
   async findBrand(project: string, id: string) {
     const Model = this.getModel(project);
-
     const result = await Model.findOne(
       { "files._id": id },
       { "files.$": 1 }
@@ -58,7 +58,6 @@ export class SdkService {
 
   async update(project: string, id: string, updateSdkDto: UpdateSdkDto) {
     const Model = this.getModel(project);
-
     try {
       const updated = await Model.findOneAndUpdate(
         { _id: id },
@@ -71,7 +70,6 @@ export class SdkService {
       }
 
       return updated;
-
     } catch (error) {
       if (error.code === 11000) {
         const field = Object.keys(error.keyPattern)[0];

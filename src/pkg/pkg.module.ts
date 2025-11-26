@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { SdkService } from './pkg.service';
-import { SdkController } from './pkg.controller';
+import { PkgService } from './pkg.service';
+import { PkgController } from './pkg.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppVersionSchema, Sdk } from './entities/pkg.entity';
+import { GCloudService } from 'src/gcloud/gcloud.service';
 
 @Module({
   imports:[
@@ -10,7 +11,7 @@ import { AppVersionSchema, Sdk } from './entities/pkg.entity';
         { name: Sdk.name, schema: AppVersionSchema },
     ]),
   ],
-  controllers: [SdkController],
-  providers: [SdkService],
+  controllers: [PkgController],
+  providers: [PkgService, GCloudService],
 })
 export class SdkModule {}

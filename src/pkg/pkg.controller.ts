@@ -1,12 +1,43 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { SdkService } from './pkg.service';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { PkgService } from './pkg.service';
 import { CreateSdkDto } from './dto/create-pkg.dto';
 import { UpdateSdkDto } from './dto/update-pkg.dto';
 import { MongoidPipe } from 'src/validors/validator_id';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { GCloudService } from 'src/gcloud/gcloud.service';
 
 @Controller('pkg')
-export class SdkController {
-  constructor(private readonly sdkService: SdkService) {}
+export class PkgController {
+  constructor(
+    private readonly sdkService: PkgService, 
+    private readonly gcloudService: GCloudService
+  ) {}
+
+  @Post('upload/:project/:version')
+  @UseInterceptors(FileInterceptor('file'))
+  upload(
+    @Param('project') project: string,
+    @Param('version') version: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.gcloudService.uploadFile(file, `${project}/${version}`);
+  }
+
+  @Get('download/:project/:version/:fileName')
+  async download(
+    @Param('fileName') fileName: string,
+    @Param('project') project: string,
+    @Param('version') version: string,
+  ) {
+    try {
+      const stream = await this.gcloudService.getSignedUrl(`${project}/${version}/${fileName}`);
+      return stream;
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
 
   @Post(':project')
   create(
