@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { CreateSdkDto } from './dto/create-pkg.dto';
-import { UpdateSdkDto } from './dto/update-pkg.dto';
+import { UpdatePkgDto } from './dto/update-pkg.dto';
 import { AppVersionSchema } from './entities/pkg.entity';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { GCloudService } from 'src/gcloud/gcloud.service';
+import { CreatePkgDto } from './dto/create-pkg.dto';
 
 @Injectable()
 export class PkgService {
@@ -16,7 +16,61 @@ export class PkgService {
     return this.connection.model(project, AppVersionSchema, project);
   }
 
-  async create(project: string,createSdkDto: CreateSdkDto) {
+  async subirApk(file : Express.Multer.File, project: string, version: string) {
+    const {originalname} = file;
+    try {
+      var res =  await this.findBrand(project, originalname);
+      console.log(res);
+      if (res != null) {
+        throw new NotFoundException(`Ya existe un registro '${originalname}'`);
+      }
+
+       res = await this.gcloudService.uploadFile(file, `${project}/${version}`);
+      console.log(res);
+      if (res != null) {
+        throw new NotFoundException(`Ya existe un registro '${originalname}'`);
+      }
+      return res
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async descApk(file : Express.Multer.File, project: string, version: string) {
+    const {originalname} = file;
+    try {
+      var res =  await this.findBrand(project, originalname);
+      console.log(res);
+      if (res == null) {
+        throw new NotFoundException(`No existe un registro '${originalname}'`);
+      }
+
+      res = await this.gcloudService.getSignedUrl(`${project}/${version}/${originalname}`);
+      console.log(res);
+      return res
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async removeApk(file : Express.Multer.File, project: string, version: string) {
+    const {originalname} = file;
+    try {
+      var res =  await this.findBrand(project, originalname);
+      console.log(res);
+      if (res == null) {
+        throw new NotFoundException(`No existe un registro '${originalname}'`);
+      }
+
+      res = await this.gcloudService.deleteFile(`${project}/${version}/${originalname}`);
+      console.log(res);
+      return res
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async create(project: string,createSdkDto: CreatePkgDto) {
     const Model = this.getModel(project);
     try{
       const newVersion = new Model(createSdkDto);
@@ -56,7 +110,7 @@ export class PkgService {
     return result.files[0];
   }
 
-  async update(project: string, id: string, updateSdkDto: UpdateSdkDto) {
+  async update(project: string, id: string, updateSdkDto: UpdatePkgDto) {
     const Model = this.getModel(project);
     try {
       const updated = await Model.findOneAndUpdate(

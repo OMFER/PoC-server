@@ -1,8 +1,8 @@
-import { IsArray, IsBoolean, IsOptional, IsString, min, MinLength, minLength, ValidateNested } from "class-validator";
-import { FileSdkDto } from "./file-pkg.dto";
+import { IsArray, IsBoolean, IsString, MinLength, ValidateNested } from "class-validator";
+import { FilePkgDto } from "./file-pkg.dto";
 import { Type } from "class-transformer";
 
-export class CreateSdkDto {
+export class CreatePkgDto {
     @IsString()
     @MinLength(4)
     versionName: string;
@@ -12,6 +12,6 @@ export class CreateSdkDto {
     
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => FileSdkDto)
-    files: FileSdkDto[]  
+    @Type(() => FilePkgDto)
+    files: FilePkgDto[]  
 }

@@ -1,6 +1,6 @@
 import { IsString, IsUrl } from "class-validator";
 
-export class FileSdkDto {
+export class FilePkgDto {
     @IsString()
     brand: string
 
