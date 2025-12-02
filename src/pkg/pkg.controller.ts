@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { PkgService } from './pkg.service';
-import { CreateSdkDto } from './dto/create-pkg.dto';
-import { UpdateSdkDto } from './dto/update-pkg.dto';
-import { MongoidPipe } from 'src/validors/validator_id';
+import { CreatePkgDto } from './dto/create-pkg.dto';
+import { UpdatePkgDto } from './dto/update-pkg.dto';
+import { MongoidPipe, ProjectPipe, VersionPipe } from 'src/validors/validator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GCloudService } from 'src/gcloud/gcloud.service';
 
@@ -16,8 +16,8 @@ export class PkgController {
   @Post('upload/:project/:version')
   @UseInterceptors(FileInterceptor('file'))
   upload(
-    @Param('project') project: string,
-    @Param('version') version: string,
+    @Param('project', ProjectPipe) project: string,
+    @Param('version', VersionPipe) version: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.gcloudService.uploadFile(file, `${project}/${version}`);
@@ -26,8 +26,8 @@ export class PkgController {
   @Get('download/:project/:version/:fileName')
   async download(
     @Param('fileName') fileName: string,
-    @Param('project') project: string,
-    @Param('version') version: string,
+    @Param('project', ProjectPipe) project: string,
+    @Param('version', VersionPipe) version: string,
   ) {
     try {
       const stream = await this.gcloudService.getSignedUrl(`${project}/${version}/${fileName}`);
@@ -38,23 +38,35 @@ export class PkgController {
     }
   }
 
+  @Delete('delete/:project/:version/:fileName')
+  async deleteFile(
+    @Param('fileName') fileName: string,
+    @Param('project', ProjectPipe) project: string,
+    @Param('version', VersionPipe) version: string
+  ){
+    try{
+      return await this.gcloudService.deleteFile(`${project}/${fileName}`);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   @Post(':project')
   create(
-    @Param('project') project: string,
-    @Body() createSdkDto: CreateSdkDto
+    @Param('project', ProjectPipe) project: string,
+    @Body() createSdkDto: CreatePkgDto
   ) {
     return this.sdkService.create(project, createSdkDto);
   }
 
   @Get(':project')
-  findAll(@Param('project') project: string) {
+  findAll(@Param('project', ProjectPipe) project: string) {
     return this.sdkService.findAll(project);
   }
 
   @Get(':project/version/:id')
   findVersion(
-    @Param('project') project: string,
+    @Param('project', ProjectPipe) project: string,
     @Param('id', MongoidPipe) id: string
   ) {
     return this.sdkService.findVersion(project, id);
@@ -62,24 +74,24 @@ export class PkgController {
 
   @Get(':project/files/:id')
   findBrand(
-    @Param('project') project: string,
-    @Param('id') id: string
+    @Param('project', ProjectPipe) project: string,
+    @Param('id', MongoidPipe) id: string
   ) {
     return this.sdkService.findBrand(project, id);
   }
 
   @Patch(':project/:id')
   update(
-    @Param('project') project: string,
+    @Param('project', ProjectPipe) project: string,
     @Param('id', MongoidPipe) id: string,
-    @Body() updateSdkDto: UpdateSdkDto
+    @Body() updateSdkDto: UpdatePkgDto
   ) {
     return this.sdkService.update(project, id, updateSdkDto);
   }
 
   @Delete(':project/:id')
   remove(
-    @Param('project') project: string,
+    @Param('project', ProjectPipe) project: string,
     @Param('id', MongoidPipe) id: string
   ) {
     return this.sdkService.remove(project, id);
@@ -87,7 +99,7 @@ export class PkgController {
 
   @Delete(':project/desactivate/:id')
   desactivate(
-    @Param('project') project: string,
+    @Param('project', ProjectPipe) project: string,
     @Param('id', MongoidPipe) id: string
   ) {
     return this.sdkService.desactivate(project, id);

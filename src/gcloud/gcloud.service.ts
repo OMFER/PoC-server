@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { GetSignedUrlConfig, Storage } from '@google-cloud/storage';
 import { randomUUID } from 'node:crypto';
 
@@ -19,8 +19,9 @@ export class GCloudService {
   }
 
   async uploadFile(file: Express.Multer.File, path: string) {
+    console.log(file);
     try {
-      const { originalname, mimetype } = file;
+      const { originalname } = file;
       const id = crypto.randomUUID()
       const finalpath = `${path}/${originalname}`;
       const bucket = this.storage.bucket(this.bucketName);
@@ -52,9 +53,11 @@ export class GCloudService {
     }
   }
 
-  async deleteFile(path: string) {
+  async deleteFile(path: string): Promise<any> {
     const bucket = this.storage.bucket(this.bucketName);
-    await bucket.file(path).delete().catch(() => null);
+    const result =  await bucket.file(path).delete().catch((e) => {throw new NotFoundException(e)});
+    console.log('resuldo'+result);
+    return result
   }
 
   async getFileStream(fileName: string): Promise<NodeJS.ReadableStream> {

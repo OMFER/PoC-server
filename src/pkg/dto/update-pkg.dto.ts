@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateSdkDto } from './create-pkg.dto';
+import { CreatePkgDto } from './create-pkg.dto';
 
-export class UpdateSdkDto extends PartialType(CreateSdkDto) {}
+export class UpdatePkgDto extends PartialType(CreatePkgDto) {}
