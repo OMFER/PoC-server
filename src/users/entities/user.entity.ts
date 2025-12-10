@@ -1,22 +1,24 @@
-import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity()
+export type UserDocument = User & Document;
+
+@Schema({ timestamps: true })
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number
+  @Prop({ required: true })
+  name: string;
 
-    @Column()
-    name: string
+  @Prop({ unique: true, required: true })
+  email: string;
 
-    @Column({unique: true, nullable: false})
-    email: string
+  @Prop({ required: true })
+  password: string;
 
-    @Column({nullable: false})
-    password: string
+  @Prop({ default: 'user' })
+  rol: string;
 
-    @Column({default: 'user'})
-    rol: string
-
-    @DeleteDateColumn()
-    deletedAt: Date
+  @Prop({ default: null })
+  deletedAt: Date;
 }
+
+export const UserSchema = SchemaFactory.createForClass(User);

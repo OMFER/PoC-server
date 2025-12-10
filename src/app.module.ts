@@ -6,14 +6,19 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [SdkModule, ConfigModule.forRoot(),
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    SdkModule,
     MongooseModule.forRootAsync({
       useFactory: () => ({
         uri: process.env.MONGO_URI,
       }),
     }),
     UsersModule,
-    AuthModule,],
+    AuthModule,
+  ],
   controllers: [],
   providers: [],
 })

@@ -19,7 +19,6 @@ export class GCloudService {
   }
 
   async uploadFile(file: Express.Multer.File, path: string) {
-    console.log(file);
     try {
       const { originalname } = file;
       const id = crypto.randomUUID()
@@ -43,7 +42,6 @@ export class GCloudService {
         stream.on('error', (err) => reject(err));
         stream.end(file.buffer);
       });
-      console.log(res);
       const url = await this.getSignedUrl(finalpath);
 
       return { image: res, url: url };
@@ -56,7 +54,6 @@ export class GCloudService {
   async deleteFile(path: string): Promise<any> {
     const bucket = this.storage.bucket(this.bucketName);
     const result =  await bucket.file(path).delete().catch((e) => {throw new NotFoundException(e)});
-    console.log('resuldo'+result);
     return result
   }
 
