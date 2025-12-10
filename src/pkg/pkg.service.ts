@@ -20,13 +20,11 @@ export class PkgService {
     const {originalname} = file;
     try {
       var res =  await this.findBrand(project, originalname);
-      console.log(res);
       if (res != null) {
         throw new NotFoundException(`Ya existe un registro '${originalname}'`);
       }
 
        res = await this.gcloudService.uploadFile(file, `${project}/${version}`);
-      console.log(res);
       if (res != null) {
         throw new NotFoundException(`Ya existe un registro '${originalname}'`);
       }
@@ -40,13 +38,11 @@ export class PkgService {
     const {originalname} = file;
     try {
       var res =  await this.findBrand(project, originalname);
-      console.log(res);
       if (res == null) {
         throw new NotFoundException(`No existe un registro '${originalname}'`);
       }
 
       res = await this.gcloudService.getSignedUrl(`${project}/${version}/${originalname}`);
-      console.log(res);
       return res
     } catch (error) {
       throw error;
@@ -57,13 +53,11 @@ export class PkgService {
     const {originalname} = file;
     try {
       var res =  await this.findBrand(project, originalname);
-      console.log(res);
       if (res == null) {
         throw new NotFoundException(`No existe un registro '${originalname}'`);
       }
 
       res = await this.gcloudService.deleteFile(`${project}/${version}/${originalname}`);
-      console.log(res);
       return res
     } catch (error) {
       throw error;

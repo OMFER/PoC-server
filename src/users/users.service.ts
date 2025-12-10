@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { FindUserResult } from 'src/auth/enums/auth.types';
 
 @Injectable()
 export class UsersService {
@@ -16,11 +17,17 @@ export class UsersService {
     return createdUser.save();
   }
 
-  async findOneByEmail(email: string): Promise<User> {
-    const user = await this.userModel.findOne({ email }).exec();
+  async findOneByEmail(email: string): Promise<FindUserResult> {
+    const user = await this.userModel.findOne({ email })
     if (!user) {
-      throw new Error(`Usuario con email ${email} no encontrado`);
-    }
-    return user;
+    return {
+      user: null,
+      message: `Usuario con email ${email} no encontrado`
+    };
+  }
+  return {
+    user,
+    message: 'Usuario encontrado correctamente'
+  };
   }
 }
