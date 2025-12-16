@@ -30,7 +30,7 @@ export class AuthService {
     }
 
     async logIn({email, password}: LoginDto){
-        const user = await this.usersService.findOneByEmail(email)
+        const user = await this.usersService.findWithPassword(email)
         if(user.user == null) throw new UnauthorizedException("El email no esta registrado")
 
         const isValidPassword = bcryptjs.compareSync(password, user.user.password)
@@ -43,7 +43,7 @@ export class AuthService {
         }
     }
 
-    async profile({email, rol}: {email: string, rol: string}){
-        return await this.usersService.findOneByEmail(email)
+    async profile(user: {email: string, rol: string}){
+        return await this.usersService.findOneByEmail(user.email)
     }
 }
