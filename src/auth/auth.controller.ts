@@ -6,6 +6,8 @@ import { AuthGuard } from './guard/auth.guard';
 import { Request } from 'express';
 import { Role } from '../common/rol.enums';
 import { Auth } from './decorators/auth.decorator';
+import { ActiveUser } from 'src/common/decorators/activeUser.decorator';
+import type { UserActiveInterface } from 'src/common/interface/userActive.interface';
 
 interface RequestWithUser extends Request {
     user: { email: string, rol: string }
@@ -29,7 +31,7 @@ export class AuthController {
 
     @Get('profile')
     @Auth(Role.ADMIN)
-    profile(@Req() req: RequestWithUser) {
-        return this.authService.profile(req.user);
+    profile(@ActiveUser() user: UserActiveInterface) {
+        return this.authService.profile(user);
     }
 }
