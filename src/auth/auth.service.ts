@@ -14,9 +14,9 @@ export class AuthService {
         private readonly jwtService: JwtService
     ){}
 
-    async register({name, email, password}: RegisterDto){
+    async register({ name, email, password }: RegisterDto){
         const user = await this.usersService.findOneByEmail(email)
-        if(user.user != null){
+        if(user.user != null) {
             throw new BadRequestException('El usuario ya existe')
         }
 
@@ -26,24 +26,24 @@ export class AuthService {
             password: await bcryptjs.hash(password, 10)
         })
 
-        return {name, email}
+        return { name, email }
     }
 
-    async logIn({email, password}: LoginDto){
-        const user = await this.usersService.findOneByEmail(email)
+    async logIn({ email, password }: LoginDto) {
+        const user = await this.usersService.findWithPassword(email)
         if(user.user == null) throw new UnauthorizedException("El email no esta registrado")
 
         const isValidPassword = bcryptjs.compareSync(password, user.user.password)
         if(!isValidPassword) throw new UnauthorizedException("El password es incorrecto")
 
-        const payload = { email: user.user.email, rol: user.user.rol}
+        const payload = { email: user.user.email, rol: user.user.rol }
         return {
             access_token: await this.jwtService.signAsync(payload),
             email
         }
     }
 
-    async profile({email, rol}: {email: string, rol: string}){
+    async profile({ email, role }: { email: string, role: string }) {
         return await this.usersService.findOneByEmail(email)
     }
 }
