@@ -5,7 +5,10 @@ import { UpdatePkgDto } from './dto/update-pkg.dto';
 import { MongoidPipe, ProjectPipe, VersionPipe } from 'src/validors/validator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GCloudService } from 'src/gcloud/gcloud.service';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { Role } from '../common/rol.enums';
 
+@Auth(Role.ADMIN)
 @Controller('pkg')
 export class PkgController {
   constructor(
